@@ -4,7 +4,9 @@ const isLocal = typeof process.pkg === "undefined";
 const basePath = isLocal ? process.cwd() : path.dirname(process.execPath);
 const fs = require("fs");
 const path = require("path");
-const { createCanvas, loadImage } = require("canvas");
+const skiaCanvas = require('skia-canvas');
+const createCanvas = (width, height) => new skiaCanvas.Canvas(width, height);
+const loadImage = skiaCanvas.loadImage;
 const buildDir = `${basePath}/build`;
 
 const { preview } = require(path.join(basePath, "/src/config.js"));
@@ -21,7 +23,7 @@ const saveProjectPreviewImage = async (_data) => {
   // Prepare canvas
   const previewCanvasWidth = thumbWidth * thumbPerRow;
   const previewCanvasHeight =
-    thumbHeight * Math.trunc(_data.length / thumbPerRow);
+    thumbHeight * Math.ceil(_data.length / thumbPerRow);
   // Shout from the mountain tops
   console.log(
     `Preparing a ${previewCanvasWidth}x${previewCanvasHeight} project preview with ${_data.length} thumbnails.`
@@ -36,19 +38,19 @@ const saveProjectPreviewImage = async (_data) => {
   // Don't want to rely on "edition" for assuming index
   for (let index = 0; index < _data.length; index++) {
     const nft = _data[index];
-    await loadImage(`${buildDir}/images/${nft.edition}.png`).then((image) => {
-      previewCtx.drawImage(
-        image,
-        thumbWidth * (index % thumbPerRow),
-        thumbHeight * Math.trunc(index / thumbPerRow),
-        thumbWidth,
-        thumbHeight
-      );
-    });
+    const image = await loadImage(`${buildDir}/images/${nft.edition}.png`);
+    previewCtx.drawImage(
+      image,
+      thumbWidth * (index % thumbPerRow),
+      thumbHeight * Math.floor(index / thumbPerRow),
+      thumbWidth,
+      thumbHeight
+    );
   }
 
   // Write Project Preview to file
-  fs.writeFileSync(previewPath, previewCanvas.toBuffer("image/png"));
+  const buffer = await previewCanvas.toBuffer("image/png");
+  fs.writeFileSync(previewPath, buffer);
   console.log(`Project preview image located at: ${previewPath}`);
 };
 

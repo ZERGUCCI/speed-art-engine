@@ -1,6 +1,8 @@
 const basePath = process.cwd();
 const fs = require("fs");
-const { createCanvas, loadImage } = require("canvas");
+const skiaCanvas = require('skia-canvas');
+const createCanvas = (width, height) => new skiaCanvas.Canvas(width, height);
+const loadImage = skiaCanvas.loadImage;
 const buildDir = `${basePath}/build`;
 const imageDir = `${buildDir}/images`;
 const { format, preview_gif } = require(`${basePath}/src/config.js`);
@@ -56,34 +58,34 @@ const saveProjectPreviewGIF = async (_data) => {
     );
     hashlipsGiffer.start();
 
-    await Promise.all(_data).then((renderObjectArray) => {
-      // Determin the order of the Images before creating the gif
-      if (order == "ASC") {
-        // Do nothing
-      } else if (order == "DESC") {
-        renderObjectArray.reverse();
-      } else if (order == "MIXED") {
-        renderObjectArray = renderObjectArray.sort(() => Math.random() - 0.5);
-      }
+    const renderObjectArray = await Promise.all(_data);
+    // Determin the order of the Images before creating the gif
+    if (order == "ASC") {
+      // Do nothing
+    } else if (order == "DESC") {
+      renderObjectArray.reverse();
+    } else if (order == "MIXED") {
+      renderObjectArray = renderObjectArray.sort(() => Math.random() - 0.5);
+    }
 
-      // Reduce the size of the array of Images to the desired amount
-      if (parseInt(numberOfImages) > 0) {
-        renderObjectArray = renderObjectArray.slice(0, numberOfImages);
-      }
+    // Reduce the size of the array of Images to the desired amount
+    if (parseInt(numberOfImages) > 0) {
+      renderObjectArray = renderObjectArray.slice(0, numberOfImages);
+    }
 
-      renderObjectArray.forEach((renderObject, index) => {
-        ctx.globalAlpha = 1;
-        ctx.globalCompositeOperation = "source-over";
-        ctx.drawImage(
-          renderObject.loadedImage,
-          0,
-          0,
-          previewCanvasWidth,
-          previewCanvasHeight
-        );
-        hashlipsGiffer.add();
-      });
-    });
+    for (const renderObject of renderObjectArray) {
+      ctx.globalAlpha = 1;
+      ctx.globalCompositeOperation = "source-over";
+      ctx.drawImage(
+        renderObject.loadedImage,
+        0,
+        0,
+        previewCanvasWidth,
+        previewCanvasHeight
+      );
+      hashlipsGiffer.add();
+    }
+    
     hashlipsGiffer.stop();
   }
 };

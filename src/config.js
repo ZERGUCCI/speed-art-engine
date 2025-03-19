@@ -28,8 +28,8 @@ const outputJPEG = false; // if false, the generator outputs png's
 const startIndex = 0;
 
 const format = {
-  width: 512,
-  height: 512,
+  width: 1848,
+  height: 2500,
   smoothing: true, // set to false when up-scaling pixel art.
 };
 
@@ -40,22 +40,25 @@ const background = {
 
 const layerConfigurations = [
   {
-    growEditionSizeTo: 10,
+    growEditionSizeTo: 100,
     namePrefix: "Series 2", // Use to add a name to Metadata `name:`
     layersOrder: [
-      { name: "Background" },
-      {
-        name: "Back Accessory",
-        // options: {
-        //   bypassDNA: true,
-        // },
-      },
-      { name: "Head" },
-      { name: "Clothes" },
-      { name: "Eyes" },
-      { name: "Hair" },
-      { name: "Accessory" },
-      { name: "Shirt Accessories" },
+      { name: "base__z5" },
+      { name: "normal addys__z10" },
+      { name: "mibera return addy__z15" },
+      { name: "stamps__z20" },
+      { name: "big labels__z25" },
+      { name: "sticker2__z30" },
+      { name: "bigger misc__z35" }, 
+      { name: "sticker1__z40" },
+      { name: "sticker1_second__z41" },
+      { name: "scrawl__z50" },
+      { name: "confetti__z55" },
+      { name: "confetti_second__z56" },
+      { name: "confetti_third__z57" },
+      { name: "confetti_fourth__z58" },
+      { name: "airmail__z70" },
+      { name: "uk orange__z80" },
     ],
   },
   // {
@@ -76,7 +79,7 @@ const layerConfigurations = [
  */
 const shuffleLayerConfigurations = false;
 
-const debugLogs = true;
+const debugLogs = false;
 
 /*********************
  * Advanced Generator Options
@@ -124,28 +127,8 @@ const traitValueOverrides = {
 const extraMetadata = {};
 
 const extraAttributes = () => [
-  // Optionally, if you need to overwrite one of your layers attributes.
-  // You can include the same name as the layer, here, and it will overwrite
-  //
-  // {
-  // trait_type: "Bottom lid",
-  //   value: ` Bottom lid # ${Math.random() * 100}`,
-  // },
-  // {
-  //   display_type: "boost_number",
-  //   trait_type: "Aqua Power",
-  //   value: Math.random() * 100,
-  // },
-  // {
-  //   display_type: "boost_number",
-  //   trait_type: "Health",
-  //   value: Math.random() * 100,
-  // },
-  // {
-  //   display_type: "boost_number",
-  //   trait_type: "Mana",
-  //   value: Math.floor(Math.random() * 100),
-  // },
+  // Returning an empty array will prevent traits from appearing in metadata
+  // while still maintaining DNA uniqueness checks
 ];
 
 // Outputs an Keccack256 hash for the image. Required for provenance hash

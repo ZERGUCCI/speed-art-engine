@@ -18,7 +18,8 @@ const { Command } = require("commander");
 const program = new Command();
 const chalk = require("chalk");
 
-const { createCanvas } = require("canvas");
+const skiaCanvas = require('skia-canvas');
+const createCanvas = (width, height) => new skiaCanvas.Canvas(width, height);
 
 const {
   format,
@@ -160,7 +161,8 @@ const regenerate = async (dnaData, options) => {
       loadedElements.push(loadLayerImg(layer));
     });
 
-    await Promise.all(loadedElements).then(async (renderObjectArray) => {
+    try {
+      const renderObjectArray = await Promise.all(loadedElements);
       // has background information?
       const bgHSL = dnaStrand.match(/(___.*)/);
       const generateBG = eval(options.background?.replace(/\s+/g, ""));
@@ -178,10 +180,12 @@ const regenerate = async (dnaData, options) => {
       };
       paintLayers(ctxMain, renderObjectArray, layerData);
 
-      outputFiles(abstractedIndexes, layerData, outputDir, canvas);
+      await outputFiles(abstractedIndexes, layerData, outputDir, canvas);
       drawIndex++;
       abstractedIndexes.shift();
-    });
+    } catch (error) {
+      console.error("Error generating image:", error);
+    }
   }
 };
 

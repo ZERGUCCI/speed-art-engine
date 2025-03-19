@@ -17,7 +17,8 @@ const fs = require("fs");
 const path = require("path");
 const { Command } = require("commander");
 const program = new Command();
-const { createCanvas } = require("canvas");
+const skiaCanvas = require('skia-canvas');
+const createCanvas = (width, height) => new skiaCanvas.Canvas(width, height);
 
 const chalk = require("chalk");
 
@@ -77,13 +78,14 @@ const createItem = (layers) => {
   }
 };
 
-const outputFiles = (_id, layerData, options) => {
+const outputFiles = async (_id, layerData, options) => {
   const { newDna, abstractedIndexes } = layerData;
 
   // Save the image
+  const buffer = await canvas.toBuffer(`${outputJPEG ? "image/jpeg" : "image/png"}`);
   fs.writeFileSync(
     `${imageDir}/${_id}${outputJPEG ? ".jpg" : ".png"}`,
-    canvas.toBuffer(`${outputJPEG ? "image/jpeg" : "image/png"}`)
+    buffer
   );
 
   const { _imageHash, _prefix, _offset } = postProcessMetadata(layerData);
@@ -107,7 +109,7 @@ const outputFiles = (_id, layerData, options) => {
   fs.writeFileSync(metadataFilePath, JSON.stringify(updatedMetadata, null, 2));
 };
 
-const regenerateItem = (_id, options) => {
+const regenerateItem = async (_id, options) => {
   // get the dna lists
   // FIgure out which layer config set it's from
   const layerEdition = layerConfigurations.reduce((acc, config) => {
@@ -131,7 +133,8 @@ const regenerateItem = (_id, options) => {
     return [...acc, loadLayerImg(layer)];
   }, []);
 
-  Promise.all(loadedElements).then((renderObjectArray) => {
+  try {
+    const renderObjectArray = await Promise.all(loadedElements);
     const layerData = {
       newDna,
       layerConfigIndex,
@@ -140,7 +143,7 @@ const regenerateItem = (_id, options) => {
     };
     // paint layers to global canvas context.. no return value
     paintLayers(ctxMain, renderObjectArray, layerData);
-    outputFiles(_id, layerData, options);
+    await outputFiles(_id, layerData, options);
 
     // update the _dna.json
     const existingDna = getDNA();
@@ -166,7 +169,9 @@ const regenerateItem = (_id, options) => {
       path.join(dnaFilePath),
       JSON.stringify(updatedDnaList, null, 2)
     );
-  });
+  } catch (error) {
+    console.error("Error generating image:", error);
+  }
 };
 
 program
